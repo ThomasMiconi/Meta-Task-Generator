@@ -1,0 +1,23 @@
+23 Jan 2023
+
+PROBAUSESPECIALSTATE: 0.0 PROBAUSEPROBABILISTICREWARDS: 0.5 PROBAUSEVARREWARDPROB: 0.8
+Special States' ranges: [[1, 2]]
+Flipping state 0 actions outcome at positions 0 and 2 other than action 0
+Transition table:
+ [[[0.33333333 0.33333333 0.33333333]
+  [0.33333333 0.33333333 0.33333333]]
+
+ [[1.         0.         0.        ]
+  [1.         0.         0.        ]]
+
+ [[0.         1.         0.        ]
+  [1.         0.         0.        ]]]
+Reward rules:
+ [[2, -1, -1, 1.0, 1.0], [0, -1, -1, 1.0, 1.0], [1, -1, -1, 1000, 1.0]]
+Stimuli:
+ [ 0 -1  0]
+
+As it is, this meta-task has the same optimal strategy for all tasks: in state 2 (only one with choice), always choose to go to state 0.
+
+But if the rewards for states 0 and 1 are made lower, then the optimal strategy depends on the (variable) probbability  of reward in  state 1.
+
