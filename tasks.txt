@@ -21,3 +21,138 @@ As it is, this meta-task has the same optimal strategy for all tasks: in state 2
 
 But if the rewards for states 0 and 1 are made lower, then the optimal strategy depends on the (variable) probbability  of reward in  state 1.
 
+2 Feb 2023
+
+PROBAUSESPECIALSTATE: 0.0 PROBAUSEPROBABILISTICREWARDS: 0.8 PROBAUSEVARREWARDPROB: 0.8
+Special States' ranges: [[0, 1, 2]]
+Transition table:
+ [[[1.         0.         0.        ]
+  [0.         1.         0.        ]]
+
+ [[0.5        0.         0.5       ]
+  [0.         0.         1.        ]]
+
+ [[0.33333333 0.33333333 0.33333333]
+  [0.         1.         0.        ]]]
+Reward rules (Old state, new state, action taken, probability, value):
+ [[1, -1, -1, 1.0, 1.0], [2, -1, 0, 1.0, 1.0], [2, -1, -1, 1000, 1.0]]
+Stimuli:
+ [1001 1000   -1]
+
+In state 0, action 0 (looping back)  is always a "delay", because State 0has
+guaranteed 0 reward, so  must always take action 1. Implies identifying Stim 1001 !
+
+While reward for state 2 is probabilistic with regenerated proba, this seems to have no impact on optimal strategies... In S1 (when seeing Stim 1000) do action 1, when in state 2 (no stim) take action 0.
+
+May be different if rewards for all  three states, or  even just for state 1,
+is also probabilistic - regenerated!Then deciding whether to go to either state
+must be assessed. 
+
+
+PROBAUSESPECIALSTATE: 0.0 PROBAUSEPROBABILISTICREWARDS: 0.0 PROBAUSEVARREWARDPROB: 0.2
+Special States' ranges: [[1, 2]]
+Transition table:
+ [[[0.         1.         0.        ]
+  [0.5        0.5        0.        ]]
+
+ [[0.5        0.5        0.        ]
+  [0.16666667 0.         0.83333333]]
+
+ [[0.5        0.         0.5       ]
+  [0.33333333 0.33333333 0.33333333]]]
+Reward rules (Old state, new state, action taken, probability, value):
+ [[1, -1, -1, 1.0, 1.0], [1, -1, 0, 1.0, 1.0], [0, -1, -1, 1.0, 1.0]]
+Stimuli:
+ [   1 1001 1000]
+
+ When seeing stim0, always 0; when seeing fixed (state 0): any, I suppose? When
+ seeing stim1 (state 2): always 1, which has a higher proba of escaping the
+ non-rrewarded state 2. Thus you must identify Stim0 vs Stim1. This is doe as
+ soon as you see one, simply by checking if you get a reward or not...  Like
+ Harlow? But at least in Harrlow the reward is dependent on your action... 
+
+
+PROBAUSESPECIALSTATE: 0.0 PROBAUSEPROBABILISTICREWARDS: 0.0 PROBAUSEVARREWARDPROB: 0.8
+Special States' ranges: [[0, 1, 2]]
+Transition table:
+ [[[0.  0.5 0.5]
+  [0.5 0.5 0. ]]
+
+ [[0.  0.  1. ]
+  [0.5 0.  0.5]]
+
+ [[0.  0.  1. ]
+  [0.  0.  1. ]]]
+Reward rules (Old state, new state, action taken, probability, value):
+ [[1, -1, 0, 1.0, 1.0], [1, -1, -1, 1.0, 1.0], [1, -1, 0, 1.0, 1.0]]
+Stimuli:
+ [1001 1000    0]
+
+Only reward is on an action leading to terminal (self-loop) state: state 1 action 0.
+Strat: on seeing Stim 0 take action 1 (guarantees  avoiding termination), on Stim 1 take action 0 (then get reward then terminal)
+So like Harlow, though reward/punishment is different and entails terminal states...
+
+
+
+PROBAUSESPECIALSTATE: 0.5 PROBAUSEPROBABILISTICREWARDS: 0.0 PROBAUSEVARREWARDPROB: 0.5
+Special States' ranges: [[0, 1]]
+Transition table:
+ [[[0. 1. 0.]
+  [0. 1. 0.]]
+
+ [[1. 0. 0.]
+  [0. 1. 0.]]
+
+ [[1. 0. 0.]
+  [1. 0. 0.]]]
+Reward rules (Old state, new state, action taken, probability, value):
+ [[2, -1, -1, 1.0, 1.0], [1, -1, -1, 1.0, 1.0], [100, -1, 0, 1.0, 1.0]]
+Stimuli:
+ [ 1  0 -1]
+ Note State 2 is unreachable and always brings back to 0, can be ignored.
+ Strat: Identify whether Special State is 0 or 1.  If 0: When seeng FixedStim 0, take action 0. If 1: When seeing FixedStim 0, take action 1. (and when seeing Fixed stim 1, whatever the case, always take action 0)
+ Essentially a bandit-like task.
+
+
+
+3 Feb 2023
+
+PROBAUSESPECIALSTATE: 0.5 PROBAUSEPROBABILISTICREWARDS: 0.0 PROBAUSEVARREWARDPROB: 0.2
+Special States' ranges: [[0, 2]]
+Transition table:
+ [[[0.5 0.5 0. ]
+  [0.  0.  1. ]]
+
+ [[1.  0.  0. ]
+  [1.  0.  0. ]]
+
+ [[0.  1.  0. ]
+  [0.  0.  1. ]]]
+Reward rules (Old state, new state, action taken, probability, value):
+ [[2, -1, 0, 1.0, 1.0], [100, -1, 1, 1.0, 1.0], [100, -1, 1, 1.0, 1.0]]
+Stimuli:
+ [ 0  0 -1]
+ Simple.  Strat:If StimFixed0: action 1, if No-Stim (State 2): either 0 (if SS is 0) or 1 (if SS is 1). CCan be determined bytrying action 1 and testing whether rewarded or not.
+
+
+PROBAUSESPECIALSTATE: 0.0 PROBAUSEPROBABILISTICREWARDS: 1.0 PROBAUSEVARREWARDPROB: 0.5
+Special States' ranges: [[1, 2]]
+Flipping state 0 actions outcome at positions 1 and 2 other than action 1
+Transition table:
+ [[[0.33333333 0.33333333 0.33333333]
+  [0.33333333 0.33333333 0.33333333]]
+
+ [[1.         0.         0.        ]
+  [1.         0.         0.        ]]
+
+ [[0.         1.         0.        ]
+  [0.16666667 0.83333333 0.        ]]]
+Reward rules (Old state, new state, action taken, probability, value):
+ [[2, -1, 1, 1.0, 1.0], [2, -1, -1, 0.5, 1.0], [1, -1, -1, 1000, 1.0]]
+Stimuli:
+ [1000   -1 1001]
+Interesting? If Stim1:  0 if Rew0 is high, 1 if Rew0 is low.
+Must identify Stim1, and  then Rew0 high/low.
+
+
+
