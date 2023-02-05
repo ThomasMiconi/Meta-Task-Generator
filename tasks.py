@@ -1,8 +1,9 @@
 import numpy as np
 
-N = 3
+N = 4
 NBA =  2
 NBR = 3
+NBFR = 2
 PROBAUSEOLDSTATE=  1.0
 PROBAUSENEWSTATE=  0.0
 PROBAUSEACTION=  .5
@@ -16,6 +17,7 @@ PROBAUSESPECIALSTATE = np.random.choice([0.0, 0.0, .5])  # Most meta-tasks don't
 #PROBAUSEPROBABILISTICREWARDS = np.random.choice([0.0, 0.0, 0.0, .2, .5, .8]) # Or probabilistic rewards either
 PROBAUSEPROBABILISTICREWARDS = np.random.choice([0.0, 0.0, 0.0, 1.0]) # Or probabilistic rewards either (but  if they do, all rewards should be probabilistic)
 PROBAUSEVARREWARDPROB =  np.random.choice([.2, .5, .8]) # *If* a reward is probabilisitc, proba that it's also variable across instances/tasks 
+PROBAUSEFLAG = np.random.choice([0.0, 0.0, .5])  # State variables / "flags" should be used sparingly
 NBVARSTIM = 2
 NBFIXEDSTIM = 2
 
@@ -78,11 +80,11 @@ while not OK:
     T = T / np.sum(T, axis=2)[:, :, None]
 
     # Reward rules
-    # Old state, new state, action taken, probability, value
+    # Old state, new state, action taken, probability, value, flag
     # Later rules override previous ones
     rules = []
     for nr in range(NBR):
-        rule = [-1, -1, -1, 0, 0]
+        rule = [-1, -1, -1, 0, 0, -1]
         while rule[0] ==  -1  and rule[1] == -1 and rule[2] == -1:
             if np.random.rand() < PROBAUSEOLDSTATE:
                 rule[0] =  np.random.randint(N)
@@ -101,20 +103,72 @@ while not OK:
         if rules[nr][1] != -1 and np.random.rand() < PROBAUSESPECIALSTATE:
             rules[nr][1] = 100 + np.random.randint(NBSPECIALSTATES)
 
+    # Should some of the rules make use of the flag?
+    for nr in range(NBR):
+        if np.random.rand() < PROBAUSEFLAG:
+            rules[nr][5] =  np.random.randint(2)
+        if np.random.rand() < PROBAUSEFLAG:
+            rules[nr][5] =  np.random.randint(2)
+
+    # Probabiliistic rewards?
     for nr in range(NBR):
         if np.random.rand() < PROBAUSEPROBABILISTICREWARDS:
             rules[nr][3] = np.random.choice([.2, .5, .8, 1.0])
             if np.random.rand() < PROBAUSEVARREWARDPROB:    # Notice the indent !
                 rules[nr][3] = 1000   # i.e. "choose it  at instace/task generation time"
 
+
+    # Should some of the rules make use of the flag?
+    for nr in range(NBR):
+        if rules[nr][5] != -1 and np.random.rand() < PROBAUSESPECIALSTATE:
+            rules[nr][5] =  np.random.randint(2)
+        if rules[nr][5] != -1 and np.random.rand() < PROBAUSESPECIALSTATE:
+            rules[nr][5] =  np.random.randint(2)
+
+
+    # Flag-setting rules (in addition to the standard rule  that transitioning to state 0 sets flag to 0)
+    # Old state, new state, action taken, new flag value 
+    # New flag value should be mostly 1
+    flagrules = []
+    for nr in range(NBFR):
+        flagrule = [-1, -1, -1, 1.0]
+        while flagrule[0] ==  -1  and flagrule[1] == -1 and flagrule[2] == -1:
+            if np.random.rand() < PROBAUSEOLDSTATE:
+                flagrule[0] =  np.random.randint(N)
+            if np.random.rand() < PROBAUSENEWSTATE:
+                flagrule[1] =  np.random.randint(N)
+            if np.random.rand() < PROBAUSEACTION:
+                flagrule[2] =  np.random.randint(NBA)
+        flagrule[3] = np.random.choice([1.0, 1.0, 1.0, 0.0])
+        flagrules.append(flagrule)
+    # Should some of the flag rules make use of the special states? (The precise identity of which will be picked when we generate an actual new instance/task)
+    for nr in range(NBFR):
+        if flagrules[nr][0] != -1 and np.random.rand() < PROBAUSESPECIALSTATE:
+            flagrules[nr][0] = 100 + np.random.randint(NBSPECIALSTATES)
+        if flagrules[nr][1] != -1 and np.random.rand() < PROBAUSESPECIALSTATE:
+            flagrules[nr][1] = 100 + np.random.randint(NBSPECIALSTATES)
+
+
+    # At least two states must have different outcomes for either action
+    somediffoutcomes = 0
+    for ns in range(N):
+        if np.any(T[ns,0] != T[ns, 1]):
+            somediffoutcomes += 1
     # *Something* must be variable across instances of the meta-task
+    somevar = False
     if np.any(stims>99) or np.any(np.array(rules)>99) :
-        OK = True
+        somevar =  True
+    OK = somevar and somediffoutcomes > 1
+
+    # Might also want to add that the graph must be weakly
+    # connected (no completely separate sub-graphs)
 
 # OK = True
 print("PROBAUSESPECIALSTATE:", PROBAUSESPECIALSTATE, "PROBAUSEPROBABILISTICREWARDS:", 
-                PROBAUSEPROBABILISTICREWARDS, "PROBAUSEVARREWARDPROB:", PROBAUSEVARREWARDPROB)
-print("Special States' ranges:", specialstatesranges)
+                PROBAUSEPROBABILISTICREWARDS, "PROBAUSEVARREWARDPROB:", PROBAUSEVARREWARDPROB, 
+                "PROBAUSEFLAG:", PROBAUSEFLAG)   # Yeah, should use dict...
+print("Special States' (if any) ranges:", specialstatesranges)
 print("Transition table:\n", T)
-print("Reward rules (Old state, new state, action taken, probability, value):\n", rules)
+print("Reward rules (Old state, new state, action taken, probability, value, flag):\n", rules)
+print("Flag rules (Old state, new state, action taken, new flag value) (being in state 0 sets flag to 0):\n", flagrules)
 print("Stimuli:\n", stims)

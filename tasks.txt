@@ -155,4 +155,67 @@ Interesting? If Stim1:  0 if Rew0 is high, 1 if Rew0 is low.
 Must identify Stim1, and  then Rew0 high/low.
 
 
+PROBAUSESPECIALSTATE: 0.5 PROBAUSEPROBABILISTICREWARDS: 0.0 PROBAUSEVARREWARDPROB: 0.8
+Special States' (if any) ranges: [[2, 0]]
+Transition table:
+ [[[0.         1.         0.        ]
+  [0.33333333 0.33333333 0.33333333]]
+
+ [[0.16666667 0.         0.83333333]
+  [0.83333333 0.         0.16666667]]
+
+ [[0.         1.         0.        ]
+  [0.         1.         0.        ]]]
+Reward rules (Old state, new state, action taken, probability, value):
+ [[1, -1, -1, 1.0, 1.0], [100, -1, -1, 1.0, 1.0], [100, -1, 0, 1.0, 1.0]]
+Stimuli:
+ [ 0  1 -1]
+Strat: If StimFixed0 always 0. If FixedStim1: 0 or 1, depending on whether the
+special state (which is rewarded) is 2 or 0. Essentially a simple 2-arm
+probbabilistic bandit on state 1's actions.
+
+
+PROBAUSESPECIALSTATE: 0.5 PROBAUSEPROBABILISTICREWARDS: 0.0 PROBAUSEVARREWARDPROB: 0.8
+Special States' (if any) ranges: [[0, 2, 1]]
+Transition table:
+ [[[0.         0.5        0.5       ]
+  [0.         0.         1.        ]]
+
+ [[0.         1.         0.        ]
+  [0.5        0.         0.5       ]]
+
+ [[0.14285714 0.14285714 0.71428571]
+  [0.83333333 0.         0.16666667]]]
+Reward rules (Old state, new state, action taken, probability, value):
+ [[1, -1, -1, 1.0, 1.0], [100, -1, -1, 1.0, 1.0], [1, -1, 0, 1.0, 1.0]]
+Stimuli:
+ [1001 1001 1000]
+ Optimal strat not obvious! Depends on which of states 0,1,2 is (rewarded)
+ special state. Also note S1 in both states 0 and 1, making it hard to know
+ which is which - but that turns out not to matter.
+ SS = 1: If Stim0 1, if Stim1 0.
+ SS = 0: If Stim0 1, if Stim1 0.
+ SS =  2: If Stim0... 0, if Stim1: 0.
+ Not so interesting. Best action on seeing stim1 is always 0.
+
+
+PROBAUSESPECIALSTATE: 0.0 PROBAUSEPROBABILISTICREWARDS: 1.0 PROBAUSEVARREWARDPROB: 0.8
+Special States' (if any) ranges: [[0, 1, 2]]
+Transition table:
+ [[[1.         0.         0.        ]
+  [0.         0.5        0.5       ]]
+
+ [[0.16666667 0.         0.83333333]
+  [1.         0.         0.        ]]
+
+ [[0.         0.5        0.5       ]
+  [0.33333333 0.33333333 0.33333333]]]
+Reward rules (Old state, new state, action taken, probability, value):
+ [[1, -1, -1, 1000, 1.0], [1, -1, -1, 0.2, 1.0], [0, -1, 1, 1000, 1.0]]
+Stimuli:
+ [ 0  0 -1]
+If FixedStim0, always 1. If no stim, either 0 or 1 depending on whether Rew R0 is high or low.
+
+
+
 
