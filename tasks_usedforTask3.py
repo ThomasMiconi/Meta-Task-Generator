@@ -1,3 +1,5 @@
+# This is the exact code that generated Task 3 in the paper (accidental key-door task).
+
 import numpy as np
 
 N = 4
@@ -21,7 +23,7 @@ PROBAUSEVARREWARDPROB =  np.random.choice([.2, .5, .8]) # *If* a reward is proba
 
 
 
-PROBAUSEFLAG = np.random.choice([0.0, 0.0, .5])  # State variables / "flags" should be used sparingly
+PROBAUSEFLAG = .5   #np.random.choice([0.0, 0.0, .5])  # State variables / "flags" should be used sparingly
 
 
 
