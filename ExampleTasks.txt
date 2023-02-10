@@ -1,0 +1,95 @@
+=== Randomly  generated meta-reinforcement learning task ===
+=== Examples from  the preprint ===
+
+For eacch randomly generated meta-task, we print out the transition  matrix,
+the range for each state variable, the reward rules, the flag-setting rules,
+and the stimuli for each state.
+
+Conventions:
+-  "-1" means "empty / don't care"
+- State  number 100+k (100, 101, 102...) indicates the k-th special state (i.e.
+  special state 0, 1, 2... respectively, each of which is replaced with a
+  randomly chosen state number for each new task.)
+- Probability value 1000+k  (1000, 1001, 1002...) indicates special probability
+  value k  (i.e. special probability value 0, 1, 2... respectively, each of
+  which is replaced with a randomly chosen probability in (0,1) for each new
+  task.)
+- Probability value 2000+k  (2000, 2001, 2002...) indicates "1 - special
+  probability value k".
+- Stimulus number 1000+k indicates varialbe stimulus k (each of which is randomly resampled for each new task)
+
+Meta-task  1
+============
+
+PROBAUSESPECIALSTATE: 0.5 PROBAUSEPROBABILISTICREWARDS: 0.0 PROBAUSEVARREWARDPROB: 0.8
+Special States' (if any) ranges: [[2, 0]]
+Transition table:
+ [[[0.         1.         0.        ]
+  [0.33333333 0.33333333 0.33333333]]
+
+ [[0.16666667 0.         0.83333333]
+  [0.83333333 0.         0.16666667]]
+
+ [[0.         1.         0.        ]
+  [0.         1.         0.        ]]]
+Reward rules (Old state, new state, action taken, probability, value):
+ [[1, -1, -1, 1.0, 1.0], [100, -1, -1, 1.0, 1.0], [100, -1, 0, 1.0, 1.0]]
+Stimuli:
+ [ 0  1 -1]
+Strat: If StimFixed0 always 0. If FixedStim1: 0 or 1, depending on whether the
+special state (which is rewarded) is 2 or 0. Essentially a simple 2-arm
+probbabilistic bandit on state 1's actions.
+
+
+
+Meta-task  2
+============
+
+PROBAUSESPECIALSTATE: 0.5 PROBAUSEPROBABILISTICREWARDS: 1.0 PROBAUSEVARREWARDPROB: 0.8 PROBAUSEFLAG: 0.0
+Special States' (if any) ranges: [[1, 0]]
+Transition table:
+ [[[1.         0.         0.        ]
+  [0.5        0.         0.5       ]]
+
+ [[1.         0.         0.        ]
+  [0.         1.         0.        ]]
+
+ [[0.5        0.5        0.        ]
+  [0.16666667 0.         0.83333333]]]
+Reward rules (Old state, new state, action taken, probability, value, flag):
+ [[100, -1, -1, 1000, 1.0, -1], [100, -1, -1, 1000, 1.0, -1], [1, -1, -1, 1000, 1.0, -1]]
+Flag rules (Old state, new state, action taken, new flag value) (being in state 0 sets flag to 0) (may not be used!):
+ [[100, -1, -1, 1.0], [0, -1, 0, 1.0]]
+Stimuli:
+ [  -1 1001 1000]
+
+If SS is 0 with  high reward, and reward for 1 is low, then optimal strategy is just 0  all the time whenthere is no stimulus
+If SS is 1, or if reward for 1 >>reward for  SS=0, optimal  strategyis to hit 1 when no stiim, 1 when stim 1000, then  1 all the time (once  you get in 1 you can stay  there indefinitely).
+Since the reward probbability  must be determined, this requires exploration!
+
+
+
+Meta-task  3
+============
+
+PROBAUSESPECIALSTATE: 0.5 PROBAUSEPROBABILISTICREWARDS: 0.0 PROBAUSEVARREWARDPROB: 0.5 PROBAUSEFLAG: 0.5
+Special States' (if any) ranges: [[1, 3, 2]]
+Transition table:
+ [[[0.         0.5        0.5        0.        ]
+  [0.         0.         1.         0.        ]]
+
+ [[0.         0.5        0.5        0.        ]
+  [0.         0.         0.         1.        ]]
+
+ [[0.33333333 0.33333333 0.         0.33333333]
+  [0.33333333 0.33333333 0.         0.33333333]]
+
+ [[0.         1.         0.         0.        ]
+  [0.         1.         0.         0.        ]]]
+Reward rules (Old state, new state, action taken, probability, value, flag):
+ [[2, -1, -1, 1.0, 1.0, 1.0]]
+Flag rules (Old state, new state, action taken, new flag value) (being in state 0 sets flag to 0) (may not be used!):
+ [[100, -1, -1, 1]]
+Stimuli:
+ [1000   -1 1001    1]
+

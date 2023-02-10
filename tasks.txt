@@ -182,6 +182,8 @@ Strat: If StimFixed0 always 0. If FixedStim1: 0 or 1, depending on whether the
 special state (which is rewarded) is 2 or 0. Essentially a simple 2-arm
 probbabilistic bandit on state 1's actions.
 
+"randomly generated task 1" in the preprint
+
 
 PROBAUSESPECIALSTATE: 0.5 PROBAUSEPROBABILISTICREWARDS: 0.0 PROBAUSEVARREWARDPROB: 0.8
 Special States' (if any) ranges: [[0, 2, 1]]

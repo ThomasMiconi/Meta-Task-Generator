@@ -1,5 +1,17 @@
 import numpy as np
 
+
+print('''
+=== Randomly  generated meta-reinforcement learning task ===
+We print out the transition  matrix, the range for each state variable, the reward rules, the flag-setting rules, and the stimuli for each state.
+Conventions:
+-  "-1" means "empty / don't care"
+- State  number 100+k (100, 101, 102...) indicates the k-th special state (i.e. special state 0, 1, 2... respectively, each of which is replaced with a randomly chosen state number for each new task.)
+- Probability value 1000+k  (1000, 1001, 1002...) indicates special probability value k  (i.e. special probability value 0, 1, 2... respectively, each of which is replaced with a randomly chosen probability in (0,1) for each new task.)
+- Probability value 2000+k  (2000, 2001, 2002...) indicates "1 - special probability value k".
+- Stimulus number 1000+k indicates varialbe stimulus k (each of which is randomly resampled for each new task)
+''')
+
 N = 4
 NBA =  2
 NBR = np.random.choice([1, 1, 1, 2, 3])
@@ -8,6 +20,7 @@ PROBAUSEOLDSTATE=  1.0
 PROBAUSENEWSTATE=  0.0
 PROBAUSEACTION=  .33
 NBSPECIALSTATES= 1  
+NBSPECIALPROBAS = 2
 STIMSIZE= 5
 PROBANOSTIM =  .2
 
@@ -121,7 +134,7 @@ while not OK:
         if np.random.rand() < PROBAUSEPROBABILISTICREWARDS:
             rules[nr][3] = np.random.choice([.2, .5, .8, 1.0])
             if np.random.rand() < PROBAUSEVARREWARDPROB:    # Notice the indent !
-                rules[nr][3] = 1000   # i.e. "choose it  at instace/task generation time"
+                rules[nr][3] = 1000 * (1+np.random.randint(2)) + np.random.randint(NBSPECIALPROBAS)   # i.e. variable  
 
 
     # Flag-setting rules (in addition to the standard rule  that transitioning to state 0 sets flag to 0)
@@ -155,11 +168,11 @@ while not OK:
     for ns in range(N):
         if np.any(T[ns,0] != T[ns, 1]):
             somediffoutcomes += 1
-    # *Something* must be variable across instances of the meta-task
-    somevar  = np.any(stims>99) or np.any(np.array(rules)>99)
-    # There must be some way  out of 0 -  0 must not be a  terminal state
+    # *Something* must be variable across instances of the meta-task (note that random rewarrd probabilities only induce  true variation if there's more than one  reward rule):
+    somevar  = np.any(stims>99) or np.any(np.logical_and(np.array(rules)>99, np.array(rules)<1000)) or  (np.any(np.array(rules)>999) and NBR > 1)
+    # There must be some way  out of 0 -  0 must not be a  terminal state:
     wayoutof0 = np.any(T[0, :, 0]  < 1.0)
-    # Every state must be reachable
+    # Every state must be reachable:
     someunreachable =0
     for ns in range(N):
         sumprobastons = 0
@@ -180,8 +193,10 @@ while not OK:
 print("PROBAUSESPECIALSTATE:", PROBAUSESPECIALSTATE, "PROBAUSEPROBABILISTICREWARDS:", 
                 PROBAUSEPROBABILISTICREWARDS, "PROBAUSEVARREWARDPROB:", PROBAUSEVARREWARDPROB, 
                 "PROBAUSEFLAG:", PROBAUSEFLAG)   # Yeah, should use dict...
-print("Special States' (if any) ranges:", specialstatesranges)
+
 print("Transition table:\n", T)
+for nr, r in enumerate(specialstatesranges):
+    print("Range for special state", nr, ":", r)
 print("Reward rules (Old state, new state, action taken, probability, value, flag):\n", rules)
 print("Flag rules (Old state, new state, action taken, new flag value) (being in state 0 sets flag to 0) (may not be used!):\n", flagrules)
-print("Stimuli:\n", stims)
+print("Stimulus for  each state:\n", stims)
