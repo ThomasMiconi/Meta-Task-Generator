@@ -6,55 +6,57 @@ print('''
 We print out the transition  matrix, the range for each state variable, the reward rules, the flag-setting rules, and the stimuli for each state.
 Conventions:
 -  "-1" means "empty / don't care"
-- State  number 100+k (100, 101, 102...) indicates the k-th special state (i.e. special state 0, 1, 2... respectively, each of which is replaced with a randomly chosen state number for each new task.)
-- Probability value 1000+k  (1000, 1001, 1002...) indicates special probability value k  (i.e. special probability value 0, 1, 2... respectively, each of which is replaced with a randomly chosen probability in (0,1) for each new task.)
-- Probability value 2000+k  (2000, 2001, 2002...) indicates "1 - special probability value k".
-- Stimulus number 1000+k indicates varialbe stimulus k (each of which is randomly resampled for each new task)
+- State  number 100+k (100, 101, 102...) indicates the k-th state variable (i.e. special state 0, 1, 2... respectively, each of which is replaced with a randomly chosen state number for each new task.)
+- Probability value 1000+k  (1000, 1001, 1002...) indicates probability variable k  (i.e. special probability value 0, 1, 2... respectively, each of which is replaced with a randomly chosen probability in (0,1) for each new task.)
+- Probability value 2000+k  (2000, 2001, 2002...) indicates "one minus probability variable k".
+- Stimulus number 1000+k indicates variable stimulus k (each of which is randomly resampled for each new task)
 ''')
 
-N = 4
-NBA =  2
-NBR = np.random.choice([1, 1, 1, 2, 3])
-NBFR = np.random.choice([1, 1, 1, 2])
-PROBAUSEOLDSTATE=  1.0
-PROBAUSENEWSTATE=  0.0
-PROBAUSEACTION=  .33
-NBSPECIALSTATES= 1  
-NBSPECIALPROBAS = 2
-STIMSIZE= 5
-PROBANOSTIM =  .2
 
-#### Now, set variables for the new meta-task:
+# Most of the complexity  in this code results from attempts at introducing some structure in the process, 
+# in the hope of biasing it towards more interesting / interpretable meta-tasks.
 
-PROBAUSESPECIALSTATE = np.random.choice([0.0, 0.0, .5])  # Most meta-tasks don't need special states
-#PROBAUSEPROBABILISTICREWARDS = np.random.choice([0.0, 0.0, 0.0, .2, .5, .8]) # Or probabilistic rewards either
+
+
+N = 4       # Number of states
+NBA =  2    # Number of actions for each state
+NBR = np.random.choice([1, 1, 1, 2, 3])     # Number of reward rules
+NBFR = np.random.choice([1, 1, 1, 2])       # Number of flag rules
+PROBAUSEOLDSTATE=  1.0      # Probability that a rule specification will include the starting state
+PROBAUSENEWSTATE=  0.0      # Probability that a rule specification will include the next  state
+PROBAUSEACTION=  .33        # Probability that a rule specification will include the action
+NBSPECIALSTATES= 1          # Number of different special states (i.e. number of state variables)  
+NBSPECIALPROBAS = 2         # Number of different probability variables
+PROBANOSTIM =  .2           # Probability that a given state provides no stimulus/observation
+
+
+NBVARSTIM = 2       # Number of different stimulus variables
+NBFIXEDSTIM = 3     # Number of different fixed stimuli
+
+
+# The following are used to generate  rules (for rewards and flags):
+PROBAUSESPECIALSTATE = np.random.choice([0.0, 0.0, .5])  # Most meta-tasks don't need to make use of special states
 PROBAUSEPROBABILISTICREWARDS = np.random.choice([0.0, 0.0, 0.0, 1.0]) # Or probabilistic rewards either (but  if they do, all rewards should be probabilistic)
-PROBAUSEVARREWARDPROB =  np.random.choice([.2, .5, .8]) # *If* a reward is probabilisitc, proba that it's also variable across instances/tasks 
-
-
-
-
+PROBAUSEVARREWARDPROB =  np.random.choice([.2, .5, .8]) # *If* a reward is probabilisitc, probability that it's a variable
 PROBAUSEFLAG = np.random.choice([0.0, 0.0, .5])  # State variables / "flags" should be used sparingly
 
 
-
-NBVARSTIM = 2
-NBFIXEDSTIM = 3
 
 #### From now on  we generate the meta-task automatically
 
 OK = False
 while not OK:
+    # Generate the range for each special state variable. When generating a new individual task, this special state variable 
+    # will be assigned a value randomly sampled from this range. 
     specialstatesranges=[]
     for ns in range(NBSPECIALSTATES):
-        myrangesize = 2 if np.random.rand() < .5 else np.random.randint(2, N)  # A special state with range size 1 makes no sense.  2 to N-1 inclusive (excludes 0).            
+        myrangesize = 2 if np.random.rand() < .5 else np.random.randint(2, N)  # A special state with range size 1 is useless. 2 to N-1 inclusive (0 cannot be a special state).            
         myrange= list(np.random.choice(range(1, N), size=myrangesize, replace=False))  # state 0 should not be a special state (kind of arbitrary)
         specialstatesranges.append(myrange)
 
-    fixedstims = []
-    for ns in range(NBFIXEDSTIM):
-        fixedstims.append(np.random.randint(2, size=STIMSIZE))
-
+    # Pick the stimuli (more precisely, their IDs).
+    # Stimulus number k < 1000 indicates that a stimulus that is constant for the whole meta-task.
+    # Stimulus number k >= 1000 indicates a stimulus variable, to be randomly resampled for each new individual task.
     stims = np.zeros(N).astype(int)
     nbdiffvarstims = 1
     while nbdiffvarstims == 1:
@@ -66,9 +68,10 @@ while not OK:
 
     # Transition function: For each state and action, a probability distribution over all states.
     # In many case, this distribution should be a one-hot vector. Even most of the remaining cases should be two-hot vectors(only two possilbe options).
-    # But not always, sometimes more options (though probably never all possible states)
-    # Furthermore, the same distribution (or sometimes, if two-hot, its mirror image) should  often be replicated over all actions.
+    # But not always, sometimes more options.
+    # Furthermore, the same distribution (or sometimes, if two-hot, its mirror image) should  sometimes be replicated over all actions.
     # Only allowed probabilities are binary (equal prob amobg non-zero), or one bigger than the others.
+    # The actual process, and the probability values used below, are somewhat arbitrary. They seem to produce OK results.
     T=  np.zeros((N, NBA, N))
     for ns in range(N):
         for na in range(NBA):
@@ -86,10 +89,10 @@ while not OK:
             for na2 in range(1, NBA):
                 T[ns, na2, :] = T[ns, 0, :]
             nzp = np.nonzero(T[ns, 0, :])[0]
-            if len(nzp) > 1  and np.random.randn()  < .5:  # Flip? (Only if >1 nonzero values - may amount to noop if all nonzero values are 1, that's fine)
+            if len(nzp) > 1  and np.random.randn()  < .5:  # Flip two outcomes for different actions? (Only if >1 nonzero values - may amount to noop if all nonzero values are 1, that's fine)
                 nanotflipped = np.random.randint(NBA)
                 (p1, p2) = np.random.choice(nzp, size=2, replace=False)
-                #print("Flipping state", ns, "actions outcome at positions", p1, "and", p2, "other than action", nanotflipped)
+                #print("Flipping state", ns, "actions outcome at positions", p1, "and", p2, " for all actions other than action", nanotflipped)
                 for na2 in range(0, NBA):
                     if na2  == nanotflipped:
                         continue
@@ -199,4 +202,4 @@ for nr, r in enumerate(specialstatesranges):
     print("Range for special state", nr, ":", r)
 print("Reward rules (Old state, new state, action taken, probability, value, flag):\n", rules)
 print("Flag rules (Old state, new state, action taken, new flag value) (being in state 0 sets flag to 0) (may not be used!):\n", flagrules)
-print("Stimulus for  each state:\n", stims)
+print("Stimulus for each state:\n", stims)
