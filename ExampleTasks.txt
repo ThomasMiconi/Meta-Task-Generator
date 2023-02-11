@@ -49,7 +49,7 @@ Stimuli:
 Optimal strategy: If seeing fixed stimulus 0, always take action 0. If seeing
 fixed stimulus 1, take action 0 or 1, depending on whether the
 special state (which is rewarded) is 2 or 0. Essentially a simple 2-arm
-probbabilistic bandit on state 1's actions.
+probabilistic bandit on state 1's actions.
 )
 
 
@@ -77,7 +77,7 @@ Stimuli:
 (Explanation:
 If SS is 0 with  high reward, and reward for 1 is low, then optimal strategy is just 0  all the time whenthere is no stimulus
 If SS is 1, or if reward for 1 >>reward for  SS=0, optimal  strategyis to hit 1 when no stiim, 1 when stim 1000, then  1 all the time (once  you get in 1 you can stay  there indefinitely).
-Since the reward probbability  must be determined, this requires exploration.)
+Since the reward probability  must be determined, this requires exploration.)
 
 
 
