@@ -1,7 +1,8 @@
 # Simpler version of the code for randomnly generating meta-reinforcement learning tasks, 
 # with less structure/biasing added.
-# This may produce sub-optimal meta-tasks (e.g.  disconnected transition graph, redundant
-# rules, etc.)
+
+# NOTE: This code may produce sub-optimal meta-tasks (e.g.  no variation across individual 
+# tasks, disconnected transition graph, redundant rules, etc.)
 
 import numpy as np
 import numpy.random as R

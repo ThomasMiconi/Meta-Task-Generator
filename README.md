@@ -12,14 +12,13 @@ This is a description of the Daw two-step tasks, as explained in the preprint:
 
 It is **recommended** to first consult `simple.py`, which is simplified as much as
 possible for illustrative purposes. Running the script generates and prints out
-the specification for one meta-task. Conventions are included in the printout. 
+the (textual) specification for one meta-task. Conventions are included in the printout. 
 
 The code actually used for task generation is `tasks.py`. This code contains
 various tricks and workarounds to bias the generative process towards
-(hopefully) more interesting or interpretable tasks.
+(hopefully) more interesting or interpretable meta-tasks.
 
-The file `ExampleTasks.py` contains the generated specifications for the three
-randomly generated meta-tasks described in the preprint, as originally produced
-by the program.
+The file `ExampleTasks.txt` contains the generated specifications for the three
+randomly generated meta-tasks described in the preprint.
 
 Work in progress.
