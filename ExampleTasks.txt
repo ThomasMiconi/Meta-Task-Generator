@@ -1,22 +1,30 @@
-=== Randomly  generated meta-reinforcement learning task ===
-=== Examples from  the preprint ===
+=== Randomly  generated meta-reinforcement learning tasks ===
 
-For eacch randomly generated meta-task, we print out the transition  matrix,
-the range for each state variable, the reward rules, the flag-setting rules,
-and the stimuli for each state.
+= Examples from  the preprint =
+
+These are the three randomly generated meta-tasks described in the preprint,
+in their original textual form as produced by the program.
+
+For each randomly generated meta-task, we print outi:
+- the transition  matrix,
+- the range for each state variable, 
+- the reward rules, the flag-setting rules,
+- and the stimuli for each state.
 
 Conventions:
 -  "-1" means "empty / don't care"
-- State  number 100+k (100, 101, 102...) indicates the k-th special state (i.e.
+- State  number 100+k (100, 101, 102...) indicates the k-th state variable (i.e.
   special state 0, 1, 2... respectively, each of which is replaced with a
   randomly chosen state number for each new task.)
-- Probability value 1000+k  (1000, 1001, 1002...) indicates special probability
-  value k  (i.e. special probability value 0, 1, 2... respectively, each of
+- Probability value 1000+k  (1000, 1001, 1002...) indicates probability
+  variable k  (i.e. special probability value 0, 1, 2... respectively, each of
   which is replaced with a randomly chosen probability in (0,1) for each new
   task.)
-- Probability value 2000+k  (2000, 2001, 2002...) indicates "1 - special
-  probability value k".
-- Stimulus number 1000+k indicates varialbe stimulus k (each of which is randomly resampled for each new task)
+- Probability value 2000+k  (2000, 2001, 2002...) indicates "one minus 
+  probability variable k".
+- Stimulus number 1000+k indicates stimulus variable k (each of which is randomly resampled for each new task)
+
+
 
 Meta-task  1
 ============
@@ -36,10 +44,13 @@ Reward rules (Old state, new state, action taken, probability, value):
  [[1, -1, -1, 1.0, 1.0], [100, -1, -1, 1.0, 1.0], [100, -1, 0, 1.0, 1.0]]
 Stimuli:
  [ 0  1 -1]
-Strat: If StimFixed0 always 0. If FixedStim1: 0 or 1, depending on whether the
+
+(Explanation:
+Optimal strategy: If seeing fixed stimulus 0, always take action 0. If seeing
+fixed stimulus 1, take action 0 or 1, depending on whether the
 special state (which is rewarded) is 2 or 0. Essentially a simple 2-arm
 probbabilistic bandit on state 1's actions.
-
+)
 
 
 Meta-task  2
@@ -63,9 +74,10 @@ Flag rules (Old state, new state, action taken, new flag value) (being in state 
 Stimuli:
  [  -1 1001 1000]
 
+(Explanation:
 If SS is 0 with  high reward, and reward for 1 is low, then optimal strategy is just 0  all the time whenthere is no stimulus
 If SS is 1, or if reward for 1 >>reward for  SS=0, optimal  strategyis to hit 1 when no stiim, 1 when stim 1000, then  1 all the time (once  you get in 1 you can stay  there indefinitely).
-Since the reward probbability  must be determined, this requires exploration!
+Since the reward probbability  must be determined, this requires exploration.)
 
 
 
@@ -93,3 +105,9 @@ Flag rules (Old state, new state, action taken, new flag value) (being in state 
 Stimuli:
  [1000   -1 1001    1]
 
+(Explanation: 
+Turns out to implement a crude key-door meta-task. Reward for
+getting to state 2  (door) but only if flag is set (key is picked); the flag is
+set by visiting the special state, which can be any of the non-initial  states.
+Note that state 2 immediately and randomly teleports you to any of the non-zero
+states.)
