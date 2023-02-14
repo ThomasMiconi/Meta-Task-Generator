@@ -5,7 +5,7 @@ tasks from a parametrized space. The parametrization is expressive enough to
 include bandit tasks, the Harlow  task, the two-step tasks, T-mazes, and other
 meta-tasks.
 
-A detailed description is available at (https://arxiv.org/abs/2302.05583). 
+A detailed description is available at https://arxiv.org/abs/2302.05583. 
 
 This is a description of the Daw two-step task, as explained in the preprint:
 ![Image of the two-step meta-task from the preprint](https://github.com/ThomasMiconi/Meta-Task-Generator/blob/main/twostep.png)
