@@ -1,7 +1,7 @@
 # Meta-Task-Generator
 
 A small program that automatically generates simple meta-reinforcement learning
-tasks. The space of possible tasks is very large and includes bandit tasks, the Harlow  task, the two-step task, T-mazes, and other
+tasks. The resulting space of accessible meta-tasks is very large and includes bandit tasks, the Harlow  task, the two-step task, T-mazes, and other
 known meta-tasks from the literature.
 
 A detailed description is available at https://arxiv.org/abs/2302.05583. 
