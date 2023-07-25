@@ -25,7 +25,7 @@ NBFR = np.random.choice([1, 1, 1, 2])       # Number of flag rules
 PROBAUSEOLDSTATE=  1.0      # Probability that a rule specification will include the starting state
 PROBAUSENEWSTATE=  0.0      # Probability that a rule specification will include the next  state
 PROBAUSEACTION=  .33        # Probability that a rule specification will include the action
-NBSPECIALSTATES= 1          # Number of different special states (i.e. number of state variables)  
+NBSTATEVARIABLES= 1          # Number of different special states (i.e. number of state variables)  
 NBSPECIALPROBAS = 2         # Number of different probability variables
 PROBANOSTIM =  .2           # Probability that a given state provides no stimulus/observation
 
@@ -35,9 +35,9 @@ NBFIXEDSTIM = 3     # Number of different fixed stimuli
 
 
 # The following are used to generate  rules (for rewards and flags):
-PROBAUSESPECIALSTATE = np.random.choice([0.0, 0.0, .5])  # Most meta-tasks don't need to make use of special states
+PROBAUSESTATEVARIABLE = np.random.choice([0.0, 0.0, .5])  # Most meta-tasks don't need to make use of special state variables
 PROBAUSEPROBABILISTICREWARDS = np.random.choice([0.0, 0.0, 0.0, 1.0]) # Or probabilistic rewards either (but  if they do, all rewards should be probabilistic)
-PROBAUSEVARREWARDPROB =  np.random.choice([.2, .5, .8]) # *If* a reward is probabilisitc, probability that it's a variable
+PROBAUSEREWARDPROBVARIABLE =  np.random.choice([.2, .5, .8]) # *If* a reward is probabilisitc, probability that it's a variable
 PROBAUSEFLAG = np.random.choice([0.0, 0.0, .5])  # State variables / "flags" should be used sparingly
 
 
@@ -49,7 +49,7 @@ while not OK:
     # Generate the range for each special state variable. When generating a new individual task, this special state variable 
     # will be assigned a value randomly sampled from this range. 
     specialstatesranges=[]
-    for ns in range(NBSPECIALSTATES):
+    for ns in range(NBSTATEVARIABLES):
         myrangesize = 2 if np.random.rand() < .5 else np.random.randint(2, N)  # A special state with range size 1 is useless. 2 to N-1 inclusive (0 cannot be a special state).            
         myrange= list(np.random.choice(range(1, N), size=myrangesize, replace=False))  # state 0 should not be a special state (kind of arbitrary)
         specialstatesranges.append(myrange)
@@ -121,10 +121,10 @@ while not OK:
 
     # Should some of the rules make use of the special states? (The precise identity of which will be picked when we generate an actual new instance/task)
     for nr in range(NBR):
-        if rules[nr][0] != -1 and np.random.rand() < PROBAUSESPECIALSTATE:
-            rules[nr][0] = 100 + np.random.randint(NBSPECIALSTATES)
-        if rules[nr][1] != -1 and np.random.rand() < PROBAUSESPECIALSTATE:
-            rules[nr][1] = 100 + np.random.randint(NBSPECIALSTATES)
+        if rules[nr][0] != -1 and np.random.rand() < PROBAUSESTATEVARIABLE:
+            rules[nr][0] = 100 + np.random.randint(NBSTATEVARIABLES)
+        if rules[nr][1] != -1 and np.random.rand() < PROBAUSESTATEVARIABLE:
+            rules[nr][1] = 100 + np.random.randint(NBSTATEVARIABLES)
 
     # Should some of the rules make use of the flag?
     for nr in range(NBR):
@@ -136,7 +136,7 @@ while not OK:
     for nr in range(NBR):
         if np.random.rand() < PROBAUSEPROBABILISTICREWARDS:
             rules[nr][3] = np.random.choice([.2, .5, .8, 1.0])
-            if np.random.rand() < PROBAUSEVARREWARDPROB:    # Notice the indent !
+            if np.random.rand() < PROBAUSEREWARDPROBVARIABLE:    # Notice the indent !
                 rules[nr][3] = 1000 * (1+np.random.randint(2)) + np.random.randint(NBSPECIALPROBAS)   # i.e. variable  
 
 
@@ -160,10 +160,10 @@ while not OK:
         flagrules.append(flagrule)
     # Should some of the flag rules make use of the special states? (The precise identity of which will be picked when we generate an actual new instance/task)
     for nr in range(NBFR):
-        if flagrules[nr][0] != -1 and np.random.rand() < PROBAUSESPECIALSTATE:
-            flagrules[nr][0] = 100 + np.random.randint(NBSPECIALSTATES)
-        if flagrules[nr][1] != -1 and np.random.rand() < PROBAUSESPECIALSTATE:
-            flagrules[nr][1] = 100 + np.random.randint(NBSPECIALSTATES)
+        if flagrules[nr][0] != -1 and np.random.rand() < PROBAUSESTATEVARIABLE:
+            flagrules[nr][0] = 100 + np.random.randint(NBSTATEVARIABLES)
+        if flagrules[nr][1] != -1 and np.random.rand() < PROBAUSESTATEVARIABLE:
+            flagrules[nr][1] = 100 + np.random.randint(NBSTATEVARIABLES)
     flagrules[0][3] = 1  # There should be at least one rule that actually sets the flag  (note  that flag rules may  not be  used)
 
     # At least two states must have different outcomes for either action
@@ -193,8 +193,8 @@ while not OK:
     # connected (no completely separate sub-graphs)
 
 # OK = True
-print("PROBAUSESPECIALSTATE:", PROBAUSESPECIALSTATE, "PROBAUSEPROBABILISTICREWARDS:", 
-                PROBAUSEPROBABILISTICREWARDS, "PROBAUSEVARREWARDPROB:", PROBAUSEVARREWARDPROB, 
+print("PROBAUSESTATEVARIABLE:", PROBAUSESTATEVARIABLE, "PROBAUSEPROBABILISTICREWARDS:", 
+                PROBAUSEPROBABILISTICREWARDS, "PROBAUSEREWARDPROBVARIABLE:", PROBAUSEREWARDPROBVARIABLE, 
                 "PROBAUSEFLAG:", PROBAUSEFLAG)   # Yeah, should use dict...
 
 print("Transition table:\n", T)
