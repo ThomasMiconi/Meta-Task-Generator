@@ -12,20 +12,25 @@ Conventions:
 - Stimulus number 1000+k indicates variable stimulus k (each of which is randomly resampled for each new task)
 ''')
 
+### This entire code generates one single meta-learning task.
 
-# Most of the complexity  in this code results from attempts at introducing some structure in the process, 
-# in the hope of biasing it towards more interesting / interpretable meta-tasks.
+# More precisely, after setting the paraameters, we repeatedly try to generate
+# a meta-task and test whether it meets certain criteria. If so, we accept it,
+# otherwise we try again.
+
+# Most of the complexity  in this code results from attempts at introducing
+# some structure and some filtering in the process, in the hope of biasing it
+# towards more interesting / interpretable meta-tasks.
 
 
+### The following parameters are common to all meta-learning tasks that this code generates:
 
 N = 4       # Number of states
 NBA =  2    # Number of actions for each state
-NBR = np.random.choice([1, 1, 1, 2, 3])     # Number of reward rules
-NBFR = np.random.choice([1, 1, 1, 2])       # Number of flag rules
 PROBAUSEOLDSTATE=  1.0      # Probability that a rule specification will include the starting state
 PROBAUSENEWSTATE=  0.0      # Probability that a rule specification will include the next  state
 PROBAUSEACTION=  .33        # Probability that a rule specification will include the action
-NBSTATEVARIABLES= 1          # Number of different special states (i.e. number of state variables)  
+NBSTATEVARIABLES= 1          # Number of different state variables
 NBSPECIALPROBAS = 2         # Number of different probability variables
 PROBANOSTIM =  .2           # Probability that a given state provides no stimulus/observation
 
@@ -34,17 +39,24 @@ NBVARSTIM = 2       # Number of different stimulus variables
 NBFIXEDSTIM = 3     # Number of different fixed stimuli
 
 
-# The following are used to generate  rules (for rewards and flags):
-PROBAUSESTATEVARIABLE = np.random.choice([0.0, 0.0, .5])  # Most meta-tasks don't need to make use of special state variables
-PROBAUSEPROBABILISTICREWARDS = np.random.choice([0.0, 0.0, 0.0, 1.0]) # Or probabilistic rewards either (but  if they do, all rewards should be probabilistic)
-PROBAUSEREWARDPROBVARIABLE =  np.random.choice([.2, .5, .8]) # *If* a reward is probabilisitc, probability that it's a variable
-PROBAUSEFLAG = np.random.choice([0.0, 0.0, .5])  # State variables / "flags" should be used sparingly
+
+### The following parameters are randomly chosen for each meta-task generation:
+
+NBR = np.random.choice([1, 1, 1, 2, 3])     # Number of reward rules
+NBFR = np.random.choice([1, 1, 1, 2])       # Number of flag rules
+
+# Parameters for generating rules (for rewards and flags):
+# Note that many of these will be zero for most generated meta-tasks. This is a design choice - we assume most meta-tasks do not need the relevant variability. 
+PROBASTATEISVARIABLE = np.random.choice([0.0, 0.0, .5])  # Probability that the 'state' component of a given rule will actually be a variable. 
+PROBAREWARDISPROBABILISTIC = np.random.choice([0.0, 0.0, 0.0, 1.0]) # Probaility that the reward for a given rule is probabilistic (either no reward is probabilistic, or all are)
+PROBAREWARDPROBAISVARIABLE =  np.random.choice([.2, .5, .8]) # *If* a reward is probabilisitc, probability that it's a variable
+PROBAEACHRULEUSESFLAG = np.random.choice([0.0, 0.0, .5])  # Flags should be used sparingly
 
 
 
 #### From now on  we generate the meta-task automatically
 
-OK = False
+OK = False # Should we accept this generated meta-task?
 while not OK:
     # Generate the range for each special state variable. When generating a new individual task, this special state variable 
     # will be assigned a value randomly sampled from this range. 
@@ -121,22 +133,22 @@ while not OK:
 
     # Should some of the rules make use of the special states? (The precise identity of which will be picked when we generate an actual new instance/task)
     for nr in range(NBR):
-        if rules[nr][0] != -1 and np.random.rand() < PROBAUSESTATEVARIABLE:
+        if rules[nr][0] != -1 and np.random.rand() < PROBASTATEISVARIABLE:
             rules[nr][0] = 100 + np.random.randint(NBSTATEVARIABLES)
-        if rules[nr][1] != -1 and np.random.rand() < PROBAUSESTATEVARIABLE:
+        if rules[nr][1] != -1 and np.random.rand() < PROBASTATEISVARIABLE:
             rules[nr][1] = 100 + np.random.randint(NBSTATEVARIABLES)
 
     # Should some of the rules make use of the flag?
     for nr in range(NBR):
-        if np.random.rand() < PROBAUSEFLAG:
+        if np.random.rand() < PROBAEACHRULEUSESFLAG:
             rules[nr][5] =  np.random.choice([1.0, 1.0, 1.0, 0.0]) # Mostly look for set flag (just a design choice)
 
 
     # Probabiliistic rewards?
     for nr in range(NBR):
-        if np.random.rand() < PROBAUSEPROBABILISTICREWARDS:
+        if np.random.rand() < PROBAREWARDISPROBABILISTIC:
             rules[nr][3] = np.random.choice([.2, .5, .8, 1.0])
-            if np.random.rand() < PROBAUSEREWARDPROBVARIABLE:    # Notice the indent !
+            if np.random.rand() < PROBAREWARDPROBAISVARIABLE:    # Notice the indent !
                 rules[nr][3] = 1000 * (1+np.random.randint(2)) + np.random.randint(NBSPECIALPROBAS)   # i.e. variable  
 
 
@@ -160,9 +172,9 @@ while not OK:
         flagrules.append(flagrule)
     # Should some of the flag rules make use of the special states? (The precise identity of which will be picked when we generate an actual new instance/task)
     for nr in range(NBFR):
-        if flagrules[nr][0] != -1 and np.random.rand() < PROBAUSESTATEVARIABLE:
+        if flagrules[nr][0] != -1 and np.random.rand() < PROBASTATEISVARIABLE:
             flagrules[nr][0] = 100 + np.random.randint(NBSTATEVARIABLES)
-        if flagrules[nr][1] != -1 and np.random.rand() < PROBAUSESTATEVARIABLE:
+        if flagrules[nr][1] != -1 and np.random.rand() < PROBASTATEISVARIABLE:
             flagrules[nr][1] = 100 + np.random.randint(NBSTATEVARIABLES)
     flagrules[0][3] = 1  # There should be at least one rule that actually sets the flag  (note  that flag rules may  not be  used)
 
@@ -193,9 +205,9 @@ while not OK:
     # connected (no completely separate sub-graphs)
 
 # OK = True
-print("PROBAUSESTATEVARIABLE:", PROBAUSESTATEVARIABLE, "PROBAUSEPROBABILISTICREWARDS:", 
-                PROBAUSEPROBABILISTICREWARDS, "PROBAUSEREWARDPROBVARIABLE:", PROBAUSEREWARDPROBVARIABLE, 
-                "PROBAUSEFLAG:", PROBAUSEFLAG)   # Yeah, should use dict...
+print("PROBASTATEISVARIABLE:", PROBASTATEISVARIABLE, "PROBAREWARDISPROBABILISTIC:", 
+                PROBAREWARDISPROBABILISTIC, "PROBAREWARDPROBAISVARIABLE:", PROBAREWARDPROBAISVARIABLE, 
+                "PROBAEACHRULEUSESFLAG:", PROBAEACHRULEUSESFLAG)   # Yeah, should use dict...
 
 print("Transition table:\n", T)
 for nr, r in enumerate(specialstatesranges):
