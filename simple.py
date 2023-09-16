@@ -62,23 +62,23 @@ T = T / np.sum(T, axis=2)[:, :, None]
 T[T <.1] = 0
 T = T / np.sum(T, axis=2)[:, :, None]
 
-# Reward rules
+# Reward conditions: when do we get a reward?
 # Each rule has the form: [Old state, new state, action taken, probability, value, flag]
+# The rule is triggered when the conditions apply.
 # Later rules override previous ones
 rules = []
 for nr in range(NBR):
-    # Old state is always used, may be a variable (>100)
-    # New state is never used, so always -1. Action may or may not be used. Probabilities are updated below. 
+    # Old state (state at previous time step) is always used, may be a variable (>100)
+    # New state is never used, so always -1. 
+    # Action may or may not be used. 
     # Value is always 1. 
-    # Flag may or may not be used, if so there is a preference to require flag=1 rather than flag=0 (just a design choiec)
+    # Flag may or may not be used, if so there is a preference to require flag=1 rather than flag=0 (just a design choice)
     rule = [R.choice([R.randint(N), 100 + R.randint(NBSPECIALSTATES)])  , 
             -1, 
             R.choice([R.randint(NBA), -1]), 
             R.choice([.2, .5, .8, 1.0, 1.0, 1000 + R.randint(NBSPECIALPROBAS), 2000 + R.randint(NBSPECIALPROBAS)]),
             1.0, 
             R.choice([-1, -1, 0, 1, 1])]
-    if rule[3]>999:
-        rule[3] = int(rule[2])
     rules.append(rule)
 
 # Flag-setting rules

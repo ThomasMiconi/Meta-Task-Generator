@@ -1,5 +1,5 @@
 import numpy as np
-
+import json
 
 print('''
 === Randomly  generated meta-reinforcement learning task ===
@@ -9,7 +9,7 @@ Conventions:
 - State  number 100+k (100, 101, 102...) indicates the k-th state variable (i.e. special state 0, 1, 2... respectively, each of which is replaced with a randomly chosen state number for each new task.)
 - Probability value 1000+k  (1000, 1001, 1002...) indicates probability variable k  (i.e. special probability value 0, 1, 2... respectively, each of which is replaced with a randomly chosen probability in (0,1) for each new task.)
 - Probability value 2000+k  (2000, 2001, 2002...) indicates "one minus probability variable k".
-- Stimulus number 1000+k indicates variable stimulus k (each of which is randomly resampled for each new task)
+- Stimulus number 10000+k indicates variable stimulus k (each of which is randomly resampled for each new task)
 ''')
 
 ### This entire code generates one single meta-learning task.
@@ -40,31 +40,35 @@ NBFIXEDSTIM = 3     # Number of different fixed stimuli
 
 
 
-### The following parameters are randomly chosen for each meta-task generation:
+# We will keep generating meta-tasks until we find one that meets certain criteria, at which point we exit
 
-NBR = np.random.choice([1, 1, 1, 2, 3])     # Number of reward rules
-NBFR = np.random.choice([1, 1, 1, 2])       # Number of flag rules
 
-# Parameters for generating rules (for rewards and flags):
-# Note that many of these will be zero for most generated meta-tasks. This is a design choice - we assume most meta-tasks do not need the relevant variability. 
-PROBASTATEISVARIABLE = np.random.choice([0.0, 0.0, .5])  # Probability that the 'state' component of a given rule will actually be a variable. 
-PROBAREWARDISPROBABILISTIC = np.random.choice([0.0, 0.0, 0.0, 1.0]) # Probaility that the reward for a given rule is probabilistic (either no reward is probabilistic, or all are)
-PROBAREWARDPROBAISVARIABLE =  np.random.choice([.2, .5, .8]) # *If* a reward is probabilisitc, probability that it's a variable
-PROBAEACHRULEUSESFLAG = np.random.choice([0.0, 0.0, .5])  # Flags should be used sparingly
+OK = False # Should we accept this generated meta-task?
+while not OK:
+
+    ### The following parameters are randomly chosen for each meta-task generation:
+
+    NBR = np.random.choice([1, 1, 1, 2, 3])     # Number of reward rules
+    NBFR = np.random.choice([1, 1, 1, 2])       # Number of flag rules
+    
+    # Parameters for generating rules (for rewards and flags):
+    # Note that many of these will be zero for most generated meta-tasks. This is a design choice - we assume most meta-tasks do not need the relevant variability. 
+    PROBASTATEISVARIABLE = np.random.choice([0.0, 0.0, .5])  # Probability that the 'state' component of a given rule will actually be a variable. 
+    PROBAREWARDISPROBABILISTIC = np.random.choice([0.0, 0.0, 0.0, 1.0]) # Probaility that the reward for a given rule is probabilistic (either no reward is probabilistic, or all are)
+    PROBAREWARDPROBAISVARIABLE =  np.random.choice([.2, .5, .8]) # *If* a reward is probabilisitc, probability that it's a variable
+    PROBAEACHRULEUSESFLAG = np.random.choice([0.0, 0.0, .5])  # Flags should be used sparingly
 
 
 
 #### From now on  we generate the meta-task automatically
 
-OK = False # Should we accept this generated meta-task?
-while not OK:
     # Generate the range for each special state variable. When generating a new individual task, this special state variable 
     # will be assigned a value randomly sampled from this range. 
     specialstatesranges=[]
     for ns in range(NBSTATEVARIABLES):
         myrangesize = 2 if np.random.rand() < .5 else np.random.randint(2, N)  # A special state with range size 1 is useless. 2 to N-1 inclusive (0 cannot be a special state).            
         myrange= list(np.random.choice(range(1, N), size=myrangesize, replace=False))  # state 0 should not be a special state (kind of arbitrary)
-        specialstatesranges.append(myrange)
+        specialstatesranges.append([int(x) for x in myrange])
 
     # Pick the stimuli (more precisely, their IDs).
     # Stimulus number k < 1000 indicates that a stimulus that is constant for the whole meta-task.
@@ -73,10 +77,10 @@ while not OK:
     nbdiffvarstims = 1
     while nbdiffvarstims == 1:
         for ns in range(N):
-            stims[ns] = np.random.randint(NBFIXEDSTIM) if np.random.rand()  < .666 else 1000 + np.random.randint(NBVARSTIM) 
+            stims[ns] = np.random.randint(NBFIXEDSTIM) if np.random.rand()  < .666 else 10000 + np.random.randint(NBVARSTIM) 
             if np.random.rand() < PROBANOSTIM:
                 stims[ns] = -1
-        nbdiffvarstims = len(np.unique(stims[stims >= 1000])) # 1 task-variable stimulus doesn't induce real variation over tasks, because it ends up being "the state that's  not fixed/nothing".  Must have at least 2  different vari stims, if any.
+        nbdiffvarstims = len(np.unique(stims[stims >= 10000])) # 1 task-variable stimulus doesn't induce real variation over tasks, because it ends up being "the state that's  not fixed/nothing".  Must have at least 2  different vari stims, if any.
 
     # Transition function: For each state and action, a probability distribution over all states.
     # In many case, this distribution should be a one-hot vector. Even most of the remaining cases should be two-hot vectors(only two possilbe options).
@@ -122,34 +126,33 @@ while not OK:
         rule = [-1, -1, -1, 0, 0, -1]
         while (rule[0] ==  -1  and rule[1] == -1 and rule[2] == -1) or (rule[0]  ==  1 and rule[5]  == 1):  # Rules in state 0 requiring flag 1 will never apply
             if np.random.rand() < PROBAUSEOLDSTATE:
-                rule[0] =  np.random.randint(N)
+                rule[0] =  int(np.random.randint(N))
             if np.random.rand() < PROBAUSENEWSTATE:
-                rule[1] =  np.random.randint(N)
+                rule[1] =  int(np.random.randint(N))
             if np.random.rand() < PROBAUSEACTION:
-                rule[2] =  np.random.randint(NBA)
-            rule[3] = 1.0 # np.random.choice([.2, .8, 1.0, 1.0])
-            rule[4] = 1.0
+                rule[2] =  int(np.random.randint(NBA))
+            rule[3] = 1.0 # Probability is 1.0 for now but may be modified below
+            rule[4] = 1.0 # Value always 1.0
+            
+            # Should some of the rules make use of the state variables? (The precise identity of which will be picked when we generate an actual new instance/task)
+            if rule[0] != -1 and np.random.rand() < PROBASTATEISVARIABLE:
+                rule[0] = 100 + np.random.randint(NBSTATEVARIABLES)
+            if rule[1] != -1 and np.random.rand() < PROBASTATEISVARIABLE:
+                rule[1] = 100 + np.random.randint(NBSTATEVARIABLES)
+            # Should some of the rules make use of the flag?
+            if np.random.rand() < PROBAEACHRULEUSESFLAG:
+                rule[5] =  np.random.choice([1.0, 1.0, 1.0, 0.0]) # Mostly look for set flag (just a design choice)
+            # Probabiliistic rewards? (and possibly probability variables?)
+            if np.random.rand() < PROBAREWARDISPROBABILISTIC:
+                rules[3] = np.random.choice([.2, .5, .8, 1.0])
+                if np.random.rand() < PROBAREWARDPROBAISVARIABLE:    # Use a probability variable. Notice the indent !
+                    if np.random.rand() < .5:
+                        rules[nr][3] = 1000 * (1+np.random.randint(2)) + np.random.randint(NBSPECIALPROBAS) # i.e. variable
+                    else:  
+                        # We use "1 minus" the k-th probability variable
+                        rules[nr][3] = 2000 * (1+np.random.randint(2)) + np.random.randint(NBSPECIALPROBAS) # i.e. variable
+
         rules.append(rule)
-
-    # Should some of the rules make use of the special states? (The precise identity of which will be picked when we generate an actual new instance/task)
-    for nr in range(NBR):
-        if rules[nr][0] != -1 and np.random.rand() < PROBASTATEISVARIABLE:
-            rules[nr][0] = 100 + np.random.randint(NBSTATEVARIABLES)
-        if rules[nr][1] != -1 and np.random.rand() < PROBASTATEISVARIABLE:
-            rules[nr][1] = 100 + np.random.randint(NBSTATEVARIABLES)
-
-    # Should some of the rules make use of the flag?
-    for nr in range(NBR):
-        if np.random.rand() < PROBAEACHRULEUSESFLAG:
-            rules[nr][5] =  np.random.choice([1.0, 1.0, 1.0, 0.0]) # Mostly look for set flag (just a design choice)
-
-
-    # Probabiliistic rewards?
-    for nr in range(NBR):
-        if np.random.rand() < PROBAREWARDISPROBABILISTIC:
-            rules[nr][3] = np.random.choice([.2, .5, .8, 1.0])
-            if np.random.rand() < PROBAREWARDPROBAISVARIABLE:    # Notice the indent !
-                rules[nr][3] = 1000 * (1+np.random.randint(2)) + np.random.randint(NBSPECIALPROBAS)   # i.e. variable  
 
 
     # Flag-setting rules (in addition to the standard rule  that transitioning to state 0 sets flag to 0)
@@ -169,7 +172,7 @@ while not OK:
                     flagrule[2] =  np.random.randint(NBA)
             flagrule[3] = np.random.choice([1, 1, 1, 0])
             ok0 = flagrule[0] != 0 or flagrule[1] != -1 or flagrule[2] != -1 # State 0 cannot unconditionally set the flag
-        flagrules.append(flagrule)
+        flagrules.append([int(x) for x in flagrule])
     # Should some of the flag rules make use of the special states? (The precise identity of which will be picked when we generate an actual new instance/task)
     for nr in range(NBFR):
         if flagrules[nr][0] != -1 and np.random.rand() < PROBASTATEISVARIABLE:
@@ -177,6 +180,10 @@ while not OK:
         if flagrules[nr][1] != -1 and np.random.rand() < PROBASTATEISVARIABLE:
             flagrules[nr][1] = 100 + np.random.randint(NBSTATEVARIABLES)
     flagrules[0][3] = 1  # There should be at least one rule that actually sets the flag  (note  that flag rules may  not be  used)
+
+
+
+    # Now we test whether the generated meta-task fulfilles some criteria for acceptance:
 
     # At least two states must have different outcomes for either action
     somediffoutcomes = 0
@@ -215,3 +222,15 @@ for nr, r in enumerate(specialstatesranges):
 print("Reward rules (Old state, new state, action taken, probability, value, flag):\n", rules)
 print("Flag rules (Old state, new state, action taken, new flag value) (being in state 0 sets flag to 0) (may not be used!):\n", flagrules)
 print("Stimulus for each state:\n", stims)
+
+# En informatique, tout finit toujours par du JSON
+jtask = {}
+jtask['T'] = T.tolist()
+jtask['flagrules'] = flagrules
+jtask['rewardrules'] = rules
+jtask['stimuli'] = stims.tolist()
+jtask['statevarranges'] = specialstatesranges
+
+jtask_s = json.dumps(jtask) # , indent=2)
+print("JSON version:\n", jtask_s.replace(' "', '\n"').replace('{','{\n').replace('}', '\n}'))
+
