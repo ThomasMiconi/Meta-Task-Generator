@@ -4,9 +4,10 @@ import json
 print('''
 === Randomly  generated meta-reinforcement learning task ===
 We print out the transition  matrix, the range for each state variable, the reward rules, the flag-setting rules, and the stimuli for each state.
+We also print out a JSON representation of the meta-task.
 Conventions:
 -  "-1" means "empty / don't care"
-- State  number 100+k (100, 101, 102...) indicates the k-th state variable (i.e. special state 0, 1, 2... respectively, each of which is replaced with a randomly chosen state number for each new task.)
+- State  number 100+k (100, 101, 102...) indicates the k-th special-state variable (i.e. special state 0, 1, 2... respectively, each of which is replaced with a randomly chosen state number for each new task.)
 - Probability value 1000+k  (1000, 1001, 1002...) indicates probability variable k  (i.e. special probability value 0, 1, 2... respectively, each of which is replaced with a randomly chosen probability in (0,1) for each new task.)
 - Probability value 2000+k  (2000, 2001, 2002...) indicates "one minus probability variable k".
 - Stimulus number 10000+k indicates variable stimulus k (each of which is randomly resampled for each new task)
@@ -27,10 +28,10 @@ Conventions:
 
 N = 4       # Number of states
 NBA =  2    # Number of actions for each state
-PROBAUSEOLDSTATE=  1.0      # Probability that a rule specification will include the starting state
-PROBAUSENEWSTATE=  0.0      # Probability that a rule specification will include the next  state
-PROBAUSEACTION=  .33        # Probability that a rule specification will include the action
-NBSTATEVARIABLES= 1          # Number of different state variables
+PROBAUSEOLDSTATE=  1.0      # Probability that a rule condition will include the starting state
+PROBAUSENEWSTATE=  0.0      # Probability that a rule condition will include the new state
+PROBAUSEACTION=  .33        # Probability that a rule condition will include the action
+NBSTATEVARIABLES= 1         # Number of different state variables
 NBSPECIALPROBAS = 2         # Number of different probability variables
 PROBANOSTIM =  .2           # Probability that a given state provides no stimulus/observation
 
@@ -144,13 +145,13 @@ while not OK:
                 rule[5] =  np.random.choice([1.0, 1.0, 1.0, 0.0]) # Mostly look for set flag (just a design choice)
             # Probabiliistic rewards? (and possibly probability variables?)
             if np.random.rand() < PROBAREWARDISPROBABILISTIC:
-                rules[3] = np.random.choice([.2, .5, .8, 1.0])
+                rule[3] = np.random.choice([.2, .5, .8, 1.0])
                 if np.random.rand() < PROBAREWARDPROBAISVARIABLE:    # Use a probability variable. Notice the indent !
                     if np.random.rand() < .5:
-                        rules[nr][3] = 1000 * (1+np.random.randint(2)) + np.random.randint(NBSPECIALPROBAS) # i.e. variable
+                        rule[3] = 1000 * (1+np.random.randint(2)) + np.random.randint(NBSPECIALPROBAS) # i.e. variable
                     else:  
                         # We use "1 minus" the k-th probability variable
-                        rules[nr][3] = 2000 * (1+np.random.randint(2)) + np.random.randint(NBSPECIALPROBAS) # i.e. variable
+                        rule[3] = 2000 * (1+np.random.randint(2)) + np.random.randint(NBSPECIALPROBAS) # i.e. variable
 
         rules.append(rule)
 
@@ -219,15 +220,15 @@ print("PROBASTATEISVARIABLE:", PROBASTATEISVARIABLE, "PROBAREWARDISPROBABILISTIC
 print("Transition table:\n", T)
 for nr, r in enumerate(specialstatesranges):
     print("Range for special state", nr, ":", r)
-print("Reward rules (Old state, new state, action taken, probability, value, flag):\n", rules)
-print("Flag rules (Old state, new state, action taken, new flag value) (being in state 0 sets flag to 0) (may not be used!):\n", flagrules)
+print("Reward conditions (Old state, new state, action taken, probability, value, flag):\n", rules)
+print("Flag-setting conditions (Old state, new state, action taken, new flag value) (being in state 0 sets flag to 0) (the flag may not be used! check reward rules):\n", flagrules)
 print("Stimulus for each state:\n", stims)
 
 # En informatique, tout finit toujours par du JSON
 jtask = {}
 jtask['T'] = T.tolist()
-jtask['flagrules'] = flagrules
-jtask['rewardrules'] = rules
+jtask['flagconditions'] = flagrules
+jtask['rewardconditions'] = rules
 jtask['stimuli'] = stims.tolist()
 jtask['statevarranges'] = specialstatesranges
 

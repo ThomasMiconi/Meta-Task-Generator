@@ -6,6 +6,7 @@
 
 import numpy as np
 import numpy.random as R
+import json
 
 print('''
 === Randomly  generated meta-reinforcement learning task ===
@@ -15,7 +16,7 @@ Conventions:
 - State  number 100+k (100, 101, 102...) indicates the k-th state variable (i.e. special state 0, 1, 2... respectively, each of which is replaced with a randomly chosen state number for each new task.)
 - Probability value 1000+k  (1000, 1001, 1002...) indicates probability variable k  (i.e. special probability value 0, 1, 2... respectively, each of which is replaced with a randomly chosen probability in (0,1) for each new task.)
 - Probability value 2000+k  (2000, 2001, 2002...) indicates "one minus probability variable k".
-- Stimulus number 1000+k indicates variable stimulus k (each of which is randomly resampled for each new task)
+- Stimulus number 10000+k indicates variable stimulus k (each of which is randomly resampled for each new task)
 ''')
 
 N = 4       # Number of states
@@ -41,13 +42,13 @@ specialstatesranges=[]
 for ns in range(NBSPECIALSTATES):
     myrangesize = R.randint(2, N)  # A special state with range size 1 is useless. 2 to N-1 inclusive (0 cannot be a special state).            
     myrange= list(R.choice(range(1, N), size=myrangesize, replace=False))  # state 0 should not be a special state (kind of arbitrary)
-    specialstatesranges.append(myrange)
+    specialstatesranges.append([int(x) for x in myrange])  # The 'int' is for the JSON serialization
 
 # Pick the stimuli for each state (more precisely, their IDs).
-# Stimulus number k < 1000 indicates that a stimulus that is constant for the whole meta-task.
-# Stimulus number k >= 1000 indicates a stimulus variable, to be randomly resampled for each new individual task.
+# Stimulus number k < 10000 indicates that a stimulus that is constant for the whole meta-task.
+# Stimulus number k >= 10000 indicates a stimulus variable, to be randomly resampled for each new individual task.
 # Stimulus number -1 indicates no stimulus
-stims = R.choice(np.concatenate((range(NBFIXEDSTIM), 1000+np.arange(NBVARSTIM), [-1])), size=N)
+stims = R.choice(np.concatenate((range(NBFIXEDSTIM), 10000+np.arange(NBVARSTIM), [-1])), size=N).astype(int)
 
 
 # Transition function: For each state and action, a probability distribution over all states.
@@ -73,12 +74,12 @@ for nr in range(NBR):
     # Action may or may not be used. 
     # Value is always 1. 
     # Flag may or may not be used, if so there is a preference to require flag=1 rather than flag=0 (just a design choice)
-    rule = [R.choice([R.randint(N), 100 + R.randint(NBSPECIALSTATES)])  , 
+    rule = [int(R.choice([R.randint(N), 100 + R.randint(NBSPECIALSTATES)]))  , 
             -1, 
-            R.choice([R.randint(NBA), -1]), 
+            int(R.choice([R.randint(NBA), -1])), 
             R.choice([.2, .5, .8, 1.0, 1.0, 1000 + R.randint(NBSPECIALPROBAS), 2000 + R.randint(NBSPECIALPROBAS)]),
             1.0, 
-            R.choice([-1, -1, 0, 1, 1])]
+            int(R.choice([-1, -1, 0, 1, 1]))]
     rules.append(rule)
 
 # Flag-setting rules
@@ -88,6 +89,7 @@ for nr in range(NBR):
 flagrules = []
 for nr in range(NBFR):
     flagrule = [R.choice([R.randint(N), 100 + R.randint(NBSPECIALSTATES)]), -1  , R.choice([R.randint(NBA), -1]), R.choice([0,1,1,1])]
+    flagrule = [int(x) for x in flagrule]
     flagrules.append(flagrule)
 
 
@@ -97,3 +99,15 @@ for nr, r in enumerate(specialstatesranges):
 print("Reward rules (Old state, new state, action taken, probability, value, flag):\n", rules)
 print("Flag rules (Old state, new state, action taken, new flag value) (being in state 0 sets flag to 0) (may not be used!):\n", flagrules)
 print("Stimulus for each state:\n", stims)
+
+
+jtask = {}
+jtask['T'] = T.tolist()
+jtask['flagconditions'] = flagrules
+jtask['rewardconditions'] = rules
+jtask['stimuli'] = stims.tolist()
+jtask['statevarranges'] = specialstatesranges
+
+jtask_s = json.dumps(jtask) # , indent=2)
+print("JSON version:\n", jtask_s.replace(' "', '\n"').replace('{','{\n').replace('}', '\n}'))
+
